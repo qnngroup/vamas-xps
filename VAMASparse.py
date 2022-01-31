@@ -71,6 +71,11 @@ def read_VAMAS(filename):
     VAMASExperiment = {}
     with open(filename) as file:
         experiment_data_complete = False
+        current_block_complete = False
+        current_block_header = False 
+        current_block_numbered = False 
+        current_block_footer = False
+        current_block = 0
 
         # counter variables
         comment_lines = 0
@@ -81,6 +86,8 @@ def read_VAMAS(filename):
 
         multiline = False
         second_numbered_pair = False
+
+        blocks = []
 
         index = 1
         # iterate over lines in VAMAS file
@@ -156,6 +163,10 @@ def read_VAMAS(filename):
 
                     if option == VAMASExperimentOptions.number_of_blocks:
                         experiment_data_complete = True
+                        index = 1
+
+                        for block in range(int(line.strip())):
+                            blocks.append({})
 
                 # add typed info to special dictionaries for future access
                 if option in experiment_numerical_metadata:
@@ -164,5 +175,26 @@ def read_VAMAS(filename):
                     experiment_type_metadata[option] = ExperimentMode[line.strip().upper()]
                 elif option == VAMASExperimentOptions.scan_mode:
                     experiment_type_metadata[option] = ScanMode[line.strip().upper()] 
+           
+            elif current_block < experiment_numerical_metadata[VAMASExperimentOptions.number_of_blocks]:
+                if current_block_complete:
+                    current_block = current_block + 1
+                block = blocks[current_block]
 
-    return VAMASExperiment
+                if not current_block_header:
+                    option = VAMASBlockHeader(index)
+                elif not current_block_numbered:
+                    option = NumberedVAMASBlockOptions(index)
+
+                    if option == NumberedVAMASBlockOptions.comment:
+                        total_lines = block[NumberedVAMASBlockOptions.number_of_lines_in_comment]
+                else:
+                    option = VAMASBlockFooter(index)
+
+                if multiline:
+                    block[option].append(line.strip())
+                else:
+                    block[option] = line.strip() 
+                    index = index + 1
+
+    return VAMASExperiment, blocks
