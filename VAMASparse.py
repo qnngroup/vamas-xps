@@ -3,10 +3,9 @@ Based on the VAMAS file specification
     VAMAS Surface Chemical Analysis Standard Data Transfer Format with Skeleton Decoding Programs'
        W.A. Dench, L.B. Hazell, M.P. Seah, and the VAMAS Community
        Surface and Interface Analysis, Volume 13, pages 63-122 (1988)
-as implemented in https://github.com/aeronth/wraith.git for Python 2
-
-Specification:
 https://analyticalsciencejournals-onlinelibrary-wiley-com.libproxy.mit.edu/doi/epdf/10.1002/sia.740130202
+
+with additional reference to https://github.com/aeronth/wraith.git for Python 2
 
 # A note on units standardized in the VAMAS 1988 specification:
 # units = ( 'c/s' | 'd' | 'degree' | 'eV' | 'K' | 'micro C' | 'micro m' | 'm/s' | 'n' | 'nA' | 'ps' | 's' | 'u' | 'V')
@@ -27,151 +26,106 @@ https://analyticalsciencejournals-onlinelibrary-wiley-com.libproxy.mit.edu/doi/e
 #  'V'        volts
 '''
 
-from datetime import datetime 
-import scipy 
-from numpy import arange, array 
+from VAMASspecs import *
+from xps.wraith.VAMAS import VAMASExperiment
 
-class VAMASExperiment:
-    def __init__(self, filename):
-        self.filename = filename
-        self.exp_metadata_labels = (
-            'format_identifier',
-            'institution_identifier',
-            'instrument_model_identifier',
-            'operator_identifier',
-            'experiment_identifier',
-            'number_of_lines_in_comment'
-        )
-        self.structure_metadata_labels = (
-            'experiment_mode',
-            'scan_mode',
-        )
-        # for CasaXPS files from the Phi VersaProbe,
-        # all but number_of_blocks = 1 should be 0
-        self.datatype_metadata_labels = (
-            'number_of_spectral_regions',
-            'number_of_experimental_variables',
-            'number_of_entries_in_param_list',
-            'number_of_manually_entered_items',
-            'number_of_future_upgrade_exp_entries',
-            'number_of_future_upgrade_block_entries',
-            'number_of_blocks'
-        )
+def read_VAMAS(filename):
+    '''
+    BASIC VAMAS FILESTRUCTURE:
+        - Experiment
+        - Block 1
+        ...
+        - Block N
+    '''
+    experiment_numerical_metadata = dict((
+        VAMASExperimentOptions.number_of_lines_in_comment,
+        VAMASExperimentOptions.number_of_spectral_regions,
+        VAMASExperimentOptions.number_of_exp_variables,
+        VAMASExperimentOptions.number_of_entries_include_list,
+        VAMASExperimentOptions.number_of_manually_entered_items,
+        VAMASExperimentOptions.number_of_future_upgrade_exp_entries,
+        VAMASExperimentOptions.number_of_future_upgrade_block_entries
+    ))
+    experiment_type_metadata = dict((
+        VAMASExperimentOptions.experiment_mode,
+        VAMASExperimentOptions.scan_mode,
+    ))
 
-    def read_from_file(self):
-        '''
-        BASIC VAMAS FILESTRUCTURE:
-            - experiment metadata
-            - comment
-            - file structure metadata
-            - datatype metadata
-            - data block 1
-            - ....
-            - data block N
-        '''
-        with open(self.filename) as file:
-            self.exp_metadata = dict(self.exp_metadata_labels)
-            self.comment = ""
-            self.structure_metadata = dict(self.exp_metadata_labels) 
-            self.datatype_metadata = dict(self.datatype_metadata_labels)  
-            self.blocks = []         
+    VAMASExperiment = {}
+    with open(filename) as file:
+        experiment_data_complete = False
 
-            exp_metadata_filled = False 
-            comment_filled = False 
-            structure_metadata_filled = False
-            datatype_metadata_filled = False
-            block_filled = []
+        # counter variables
+        comment_lines = 0
+        exp_variables = 0
+        entries_included = 0
+        manual_entries = 0
+        upgrade_exp_entries = 0
 
-            index = 0
-            for line in file:
-                if not exp_metadata_filled:
-                    # populate experiment metadata
-                    self.exp_metadata[self.exp_metadata_labels[index]] = line.strip()
-                    index = index + 1
-                    if index >= len(self.exp_metadata_labels):
-                        exp_metadata_filled = True
-                        index = 0
-                elif not comment_filled:
-                    # populate comment based on number of lines specified in metadata
-                    self.comment += line
-                    index = index + 1
-                    if index >= int(self.exp_metadata['number_of_lines_in_comment']):
-                        comment_filled = True 
-                        index = 0
-                elif not structure_metadata_filled:
-                    # populate structure metadata
-                    self.structure_metadata[self.structure_metadata_labels[index]] = line.strip()
-                    index = index + 1
-                    if index >= len(self.structure_metadata_labels):
-                        structure_metadata_filled = True
-                        index = 0
-                elif not datatype_metadata_filled:
-                    # populate datatype metadata (assumes all but blocks are 0)
-                    if self.structure_metadata['experiment_mode'].upper() == 'NORM':
-                        self.datatype_metadata[self.datatype_metadata_labels[index]] = line
+        index = 1
+        # iterate over lines in VAMAS file
+        for line in file:
+            # read out experiment data section
+            if not experiment_data_complete:
+                # returns <VAMASExperimentOptions.NAME: index>
+                option = VAMASExperimentOptions(index)
+                VAMASExperiment[option.name] = line 
+                
+                # check for optional/multiline cases
+                if option == VAMASExperimentOptions.comment:
+                    # move to next option if comment length exceeded
+                    if comment_lines >= experiment_numerical_metadata[VAMASExperimentOptions.number_of_lines_in_comment]:
                         index = index + 1
-                        if index >= len(self.datatype_metadata_labels):
-                            datatype_metadata_filled = True 
-                            index = 0
-                            for i in range(int(self.datatype_metadata['number_of_blocks'])):
-                                self.blocks.append(VAMASBlock)
-                                self.block_filled.append(False)
+                        option = VAMASExperimentOptions(index)
+                    # otherwise add to comment without advancing index
+                    elif comment_lines == 0:
+                        VAMASExperiment[option] = line.strip()
+                        comment_lines = comment_lines + 1
+                        continue
                     else:
-                        print('experiment mode not supported')
-                        break
-                else:
-                    pass
+                        VAMASExperiment[option] = VAMASExperiment[option] + line.strip()
+                        comment_lines = comment_lines + 1
+                        continue
 
-class VAMASBlock():
-    def __init__(self):
-        self.metadata_labels = (
-            'block_identifier',
-            'sample_identifier',
-            'year',
-            'month',
-            'day',
-            'hours',
-            'minutes',
-            'seconds',
-            'number_of_hours_in_advance_of_GMT',
-            'number_of_lines_in_comment',
-            'technique',
-            'analysis_source_label',
-            'analysis_source_characteristic_energy',
-            'analysis_source_strength',
-            'analysis_source_beam_width_x',
-            'analysis_source_beam_width_y',
-            'analysis_source_polar_AOI',
-            'analysis_source_azimuth',
-            'analyzer_mode',
-            'analyzer_pass_energy',
-            'mangification_of_anlayzer_transfer_lens',
-            'analyzer_work_function',
-            'target_bias',
-            'analysis_width_x',
-            'analysis_width_y',
-            'analyzer_axis_polar_offset',
-            'analyzer_axis_azimuth_offset',
-            'species_label',
-            'transition_state_label',
-            'charge_of_detected_particle',
-            'number_of_corresponding_variables',
-            'signal_mode',
-            'signal_collection_time',
-            'number_of_scans_to_compile_block',
-            'signal_time_correction',
-            'sputtering_source_energy',
-            'sputtering_source_beam_current',
-            'sputtering_source_width_x',
-            'sputtering_source_width,y',
-            'sputtering_source_polar_AOI',
-            'sputtering_source_azimuth',
-            'sputtering_mode',
-            'sample_normal_polar_tilt',
-            'sample_normal_azimuth_tilt',
-            'sample_rotation_angle',
-            'number_of_additional_params',
-            'number_of_future_upgrade_entries',
-            'number_of_ordinate_values',
-            'number_of_corresponding_variables'
-        )
+                if option == VAMASExperimentOptions.number_of_spectral_regions:
+                    if (experiment_type_metadata[VAMASExperimentOptions.experiment_mode] 
+                        == (ExperimentMode.MAP or ExperimentMode.MAPDP or ExperimentMode.NORM or ExperimentMode.SDP)):
+                        pass
+                    # skip if false
+                    else:
+                        index = index + 1
+                        option = VAMASExperimentOptions(index)
+                if option == VAMASExperimentOptions.number_of_analysis_pos:
+                    if (experiment_type_metadata[VAMASExperimentOptions.experiment_mode]
+                        == (ExperimentMode.MAP or ExperimentMode.MAPDP)):
+                        pass
+                    # skip if false
+                    else:
+                        index = index + 3
+                        option = VAMASExperimentOptions(index)
+                
+                if option == VAMASExperimentOptions.exp_variable_label:
+                    if exp_variables > experiment_numerical_metadata[VAMASExperimentOptions.number_of_exp_variables]:
+                        index = index + 2
+                        option = VAMASExperimentOptions(index)
+                    elif exp_variables == 0:
+                        VAMASExperiment[option] = []
+                        VAMASExperiment[option].append(line.strip())
+                        exp_variables = exp_variables + 1
+                        continue 
+                    else:
+                        VAMASExperiment[option].append(line.strip())
+                        exp_variables = exp_variables + 1
+                        continue 
+
+                # add all others as normal
+                VAMASExperiment[option] = line.strip()
+                index = index + 1
+
+                # add typed info to special dictionaries for future access
+                if option in experiment_numerical_metadata:
+                    experiment_numerical_metadata[option] = int(line.strip())
+                elif option == VAMASExperimentOptions.experiment_mode:
+                    experiment_type_metadata[option] = ExperimentMode[line.strip().upper()]
+                elif option == VAMASExperimentOptions.scan_mode:
+                    experiment_type_metadata[option] = ScanMode[line.strip().upper()] 
