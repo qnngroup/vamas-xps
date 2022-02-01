@@ -81,86 +81,86 @@ class NumberedVAMASBlockOptions(Enum):
     '''
     representation of possible VAMAS block options
     '''
-    year = 1
-    month = 2
-    day = 3
-    hours = 4
-    minutes = 5
-    seconds = 6
-    number_of_hours_in_advance_of_GMT = 7
-    number_of_lines_in_comment = 8
+    year = auto() # 1
+    month = auto() # 2
+    day = auto() # 3
+    hours = auto() # 4
+    minutes = auto() # 5
+    seconds = auto() # 6
+    number_of_hours_in_advance_of_GMT = auto() #7
+    number_of_lines_in_comment = auto() #8
     # OPTIONAL - set by number_of_lines_in_comment
-    comment = 8
-    technique = 9
+    comment = auto() # 8
+    technique = auto() # 9
     # OPTIONAL (MAP/MAPDP), 2 lines
-    x_coord = 10
-    y_coord = 10
+    x_coord = auto() # 10
+    y_coord = auto() # 10
     # OPTIONAL - set by number_of_exp_variables
-    value_of_experimental_variable = 11
-    analysis_source_label = 12
+    value_of_experimental_variable = auto() #11
+    analysis_source_label = auto() #12
     # OPTIONAL (MAPDP/MAPSVDP/SDP/SDPV or technique = FABMS/ISS/SIMS/SNMS[+ energy spec])
-    sputtering_ion = 13
-    number_of_atoms_in_ion = 13
-    sputtering_ion_charge = 13
-    analysis_source_characteristic_energy = 14
-    analysis_source_strength = 15
-    analysis_source_beam_width_x = 16
-    analysis_source_beam_width_y = 16
+    sputtering_ion = auto() #13
+    number_of_atoms_in_ion = auto() #13
+    sputtering_ion_charge = auto() #13
+    analysis_source_characteristic_energy = auto() #14
+    analysis_source_strength = auto() #15
+    analysis_source_beam_width_x = auto() #16
+    analysis_source_beam_width_y = auto() #16
     # OPTIONAL (MAP/MAPDP/MAPSVDP/SEM)
-    field_of_view_x = 17
-    field_of_view_y = 17
+    field_of_view_x = auto() # 17
+    field_of_view_y = auto() # 17
     # OPTIONAL (MAPSV/MAPSVDP/SEM)
-    first_linescan_xi = 18
-    first_linescan_yi = 18
-    first_linescan_xf = 18
-    first_linescan_yf = 18
-    last_linescan_xf = 18
-    last_linescan_yf = 18
-    analysis_source_polar_aoi = 19
-    analysis_source_azimuth = 20
-    analyzer_mode = 21
-    analyzer_pass_energy = 22
+    first_linescan_xi = auto() # 18
+    first_linescan_yi = auto() # 18
+    first_linescan_xf = auto() # 18
+    first_linescan_yf = auto() # 18
+    last_linescan_xf = auto() # 18
+    last_linescan_yf = auto() # 18
+    analysis_source_polar_aoi = auto() # 19
+    analysis_source_azimuth = auto() # 20
+    analyzer_mode = auto() # 21
+    analyzer_pass_energy = auto() # 22
     # OPTIONAL (technique = AES diff)
-    differential_width = 23
-    magnification_of_analyzer_transfer_lens = 24
-    analyzer_work_function = 25
-    target_bias = 26
-    analysis_width_x = 27
-    analysis_width_y = 27
-    analyzer_polar_takeoff = 28
-    analyzer_azimuth_takeoff = 28
-    species_label = 29
-    transition_state_label = 30
-    charge_of_detected_particle = 30
+    differential_width = auto() # 23
+    magnification_of_analyzer_transfer_lens = auto() # 24
+    analyzer_work_function = auto() # 25
+    target_bias = auto() # 26
+    analysis_width_x = auto() # 27
+    analysis_width_y = auto() # 27
+    analyzer_polar_takeoff = auto() # 28
+    analyzer_azimuth_takeoff = auto() # 28
+    species_label = auto() # 29
+    transition_state_label = auto() # 30
+    charge_of_detected_particle = auto() # 30
     # OPTIONAL (scan mode = REGULAR)
-    abscissa_label = 31
-    abscissa_units = 31
-    abscissa_start = 31
-    abscissa_increment = 31
-    number_of_corresponding_variables = 32
+    abscissa_label = auto() # 31
+    abscissa_units = auto() # 31
+    abscissa_start = auto() # 31
+    abscissa_increment = auto() # 31
+    number_of_corresponding_variables = auto() # 32
     # OPTIONAL (above > 0)
-    corresponding_variable_label = 32
-    corresponding_variable_units = 32
-    signal_mode = 33
-    signal_collection_time = 34
-    number_of_scans = 35
-    signal_time_correction = 36
+    corresponding_variable_label = auto() # 32
+    corresponding_variable_units = auto() # 32
+    signal_mode = auto() # 33
+    signal_collection_time = auto() # 34
+    number_of_scans = auto() # 35
+    signal_time_correction = auto() # 36
     # OPTIONAL (technique = AES diff/AES dir/EDX/ELS/UPS/XPS/XRF AND exp = MAPDP/MAPDSVDP/SDP/SDPSV)
-    sputtering_source_energy = 37
-    sputtering_source_beam_current = 37
-    sputtering_source_width_x = 37
-    sputtering_source_width_y = 37
-    sputtering_source_polar_aoi = 37
-    sputtering_source_azimuth = 37
-    sputtering_mode = 37 # continuous or cyclic
-    sample_normal_polar_tilt = 38
-    sample_normal_azimuth_tilt = 38
-    sample_rotation_angle = 39
-    number_of_additional_params = 40
+    sputtering_source_energy = auto() # 37
+    sputtering_source_beam_current = auto() # 37
+    sputtering_source_width_x = auto() # 37
+    sputtering_source_width_y = auto() # 37
+    sputtering_source_polar_aoi = auto() # 37
+    sputtering_source_azimuth = auto() # 37
+    sputtering_mode = auto() #37 # continuous or cyclic
+    sample_normal_polar_tilt = auto() #38
+    sample_normal_azimuth_tilt = auto() #38
+    sample_rotation_angle = auto() #39
+    number_of_additional_params = auto() #40
     # OPTIONAL (above > 0)
-    additional_param_label = 40
-    additional_param_units = 40
-    additional_param_value = 40
+    additional_param_label = auto() # 40
+    additional_param_units = auto() # 40
+    additional_param_value = auto() # 40
 
 class VAMASBlockFooter(Enum):
     # OPTIONAL (depends number_of_future_upgrade_block_entries [VAMASExperiment])
