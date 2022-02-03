@@ -4,9 +4,10 @@ class ExperimentMode(Enum):
     MAP = auto()
     MAPDP = auto()
     MAPSV = auto()
+    MAPSVDP = auto()
     NORM = auto()
     SDP = auto()
-    SDPV = auto()
+    SDPSV = auto()
     SEM = auto()
 
 class ScanMode(Enum):
@@ -167,7 +168,8 @@ class VAMASBlockFooter(Enum):
     future_upgrade_block_entry = auto()
     
     number_of_ordinate_values = auto() # = number_corresponding_variables x number of sets of corresponding vars. to be transferred
-    # OPTIONAL (depends above)
+    # OPTIONAL (depends number_of_corresponding_variables)
     minimum_ordinate_value = auto()
     maximum_ordinate_value = auto()
+    # OPTION (depends number_of_ordinate_values)
     ordinate_value = auto()
