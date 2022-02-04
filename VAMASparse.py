@@ -167,12 +167,14 @@ class VAMASparser():
             index, self.exp_variables, multiline, create = self.multiline_decision(self.exp_variables, total_lines, index, 2)
             if create:
                 self.VAMASExperiment[option] = []
+                self.VAMASExperiment[VAMASExperimentOptions.exp_variable_unit] = []
             if multiline:
                 self.second_numbered_pair = True
             option = VAMASExperimentOptions(index)
         elif option == VAMASExperimentOptions.exp_variable_label and self.second_numbered_pair:
             self.VAMASExperiment[VAMASExperimentOptions.exp_variable_unit].append(line.strip())
             self.second_numbered_pair = False
+            return index, experiment_data_complete
 
         # Multiline: entries_include/exclude_list
         if option == VAMASExperimentOptions.inclusion_prefix_number:
@@ -446,6 +448,7 @@ class VAMASparser():
             index = index + 1
 
         if self.current_block_footer:
+            index = 1
             current_block = current_block + 1 
 
             self.current_block_header = False 

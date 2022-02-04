@@ -1,0 +1,44 @@
+
+--------------------------
+     File Information
+--------------------------
+File Name:  103.3.ITOSA3C1.spe
+File Type:  XPS SPECTRUM
+Comment:  3.ITOSA3C1
+
+File Name:  104.4.ITOSA4F3.spe
+File Type:  XPS SPECTRUM
+Comment:  4.ITOSA4F3
+
+File Name:  105.5.ITOSA4F2.spe
+File Type:  XPS SPECTRUM
+Comment:  5.ITOSA4F2
+
+--------------------------
+Atomic Concentration Table
+--------------------------
+    C1s        O1s        In3d5      Sn3d   
+    0.314      0.733      4.530      8.288    RSF 
+   57.911    128.614    927.656   1680.908    CorrectedRSF 
+    23.39      50.14      24.82       1.64    3.ITOSA3C1
+    22.86      48.46      25.11       3.58    4.ITOSA4F3
+    18.99      50.37      26.78       3.86    5.ITOSA4F2
+
+    21.75      49.66      25.57       3.03    Mean 
+     2.40       1.05       1.06       1.21    Standard Deviation 
+
+--------------------------
+    Weight % Table 
+--------------------------
+    C1s        O1s        In3d5      Sn3d   
+    0.314      0.733      4.530      8.288    RSF 
+   57.911    128.614    927.656   1680.908    CorrectedRSF 
+     6.81      19.43      69.04       4.72  
+     6.30      17.79      66.16       9.75  
+     4.99      17.64      67.33      10.03  
+
+     6.03      18.29      67.51       8.17    Mean 
+     0.93       0.99       1.45       2.99    Standard Deviation 
+
+
+

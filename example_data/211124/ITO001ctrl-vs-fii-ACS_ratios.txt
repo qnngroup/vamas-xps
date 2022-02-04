@@ -1,0 +1,38 @@
+
+--------------------------
+     File Information
+--------------------------
+File Name:  109.1.control.spe
+File Type:  XPS SPECTRUM
+Comment:  1.control
+
+File Name:  110.4.fii.spe    
+File Type:  XPS SPECTRUM
+Comment:  4.fii    
+
+--------------------------
+Atomic Concentration Table
+--------------------------
+    O1s        In3d5      Sn3d5  
+    0.733      4.530      4.890    RSF 
+   16.502    114.740    124.327    CorrectedRSF 
+    65.68      31.40       2.92    ctrl
+    63.49      34.54       1.97    fii
+
+    64.59      32.97       2.44    Mean 
+     1.55       2.22       0.67    Standard Deviation 
+
+--------------------------
+    Weight % Table 
+--------------------------
+    O1s        In3d5      Sn3d5  
+    0.733      4.530      4.890    RSF 
+   16.502    114.740    124.327    CorrectedRSF 
+    21.01      72.07       6.92  
+    19.48      76.04       4.49  
+
+    20.24      74.05       5.70    Mean 
+     1.08       2.80       1.72    Standard Deviation 
+
+
+
