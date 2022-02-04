@@ -49,15 +49,17 @@ class VAMASparser():
             VAMASExperimentOptions.scan_mode,
         ))
 
-        self.block_numerical_labels = dict.fromkeys((
+        self.blocks_numerical_labels = (
             NumberedVAMASBlockOptions.number_of_lines_in_comment,
             NumberedVAMASBlockOptions.number_of_corresponding_variables,
             NumberedVAMASBlockOptions.number_of_additional_params,
             VAMASBlockFooter.number_of_ordinate_values
-        ))
+        )
 
-        self.block_type_labels = {}
-        self.block_type_labels[NumberedVAMASBlockOptions.technique] = None
+        self.blocks_type_labels = (NumberedVAMASBlockOptions.technique)
+
+        self.all_blocks_numerical = []
+        self.all_blocks_type = []
 
     def multiline_decision(self, current_lines, total_lines, index, lines_per_item=1):
         '''
@@ -74,6 +76,20 @@ class VAMASparser():
             return index, current_lines + 1, True, True
         else:
             return index, current_lines + 1, True, False
+
+    def get_x_axis(self, block_index=0):
+        block = self.blocks[block_index]
+        block_numerical_labels = self.blocks[block_index]
+
+        label = block[NumberedVAMASBlockOptions.abscissa_label]
+        units = block[NumberedVAMASBlockOptions.abscissa_units]
+        start = float(block[NumberedVAMASBlockOptions.abscissa_start])
+        increment = float(block[NumberedVAMASBlockOptions.abscissa_increment])
+
+        x = []
+        for i in range(block_numerical_labels[VAMASBlockFooter.number_of_ordinate_values]):
+            x.append(start + increment*i)
+        return x, label, units
 
     def get_ordinate_vals(self, variable_index, block_index=0):
         '''
@@ -128,16 +144,17 @@ class VAMASparser():
         # Optional: spectral regions
         if option == VAMASExperimentOptions.number_of_spectral_regions:
             if (self.exp_type_labels[VAMASExperimentOptions.experiment_mode] 
-                == (ExperimentMode.MAP or ExperimentMode.MAPDP or ExperimentMode.NORM or ExperimentMode.SDP)):
+                in (ExperimentMode.MAP, ExperimentMode.MAPDP, ExperimentMode.NORM, ExperimentMode.SDP)):
                 pass
             # skip if false
             else:
                 index = index + 1
                 option = VAMASExperimentOptions(index)
+
         # Optional: analysis positions
         if option == VAMASExperimentOptions.number_of_analysis_pos:
             if (self.exp_type_labels[VAMASExperimentOptions.experiment_mode]
-                == (ExperimentMode.MAP or ExperimentMode.MAPDP)):
+                in (ExperimentMode.MAP, ExperimentMode.MAPDP)):
                 pass
             # skip if false
             else:
@@ -157,12 +174,20 @@ class VAMASparser():
             self.VAMASExperiment[VAMASExperimentOptions.exp_variable_unit].append(line.strip())
             self.second_numbered_pair = False
 
+        # Multiline: entries_include/exclude_list
+        if option == VAMASExperimentOptions.inclusion_prefix_number:
+            total_lines = self.exp_numerical_labels[VAMASExperimentOptions.number_of_entries_include_list]
+            index, self.entries_included, multiline, create = self.multiline_decision(self.entries_included, total_lines, index)
+            if create:
+                self.VAMASExperiment[option] = []
+            option = VAMASExperimentOptions(index)
+
         # Multiline: manual entries
         if option == VAMASExperimentOptions.prefix_number_of_manual_entry:
             total_lines = self.exp_numerical_labels[VAMASExperimentOptions.number_of_manually_entered_items]
             index, self.manual_entries, multiline, create = self.multiline_decision(self.manual_entries, total_lines, index)
             if create:
-                self.VAMASExperiment[option] = ''
+                self.VAMASExperiment[option] = []
             option = VAMASExperimentOptions(index)
 
         # Multiline: future upgrade experiment entries
@@ -187,6 +212,8 @@ class VAMASparser():
 
                 for block in range(int(line.strip())):
                     self.blocks.append({})
+                    self.all_blocks_numerical.append(dict.fromkeys(self.blocks_numerical_labels))
+                    self.all_blocks_type.append({NumberedVAMASBlockOptions.technique:None})
 
         # add typed info to special dictionaries for future access
         if option in self.exp_numerical_labels:
@@ -207,6 +234,8 @@ class VAMASparser():
         returns: new index, new current_block
         '''
         block = self.blocks[current_block]
+        block_numerical_labels = self.all_blocks_numerical[current_block]
+        block_type_labels = self.all_blocks_type[current_block]
         multiline = False
 
         # select the correct option from the correct enum
@@ -232,21 +261,24 @@ class VAMASparser():
         elif not self.current_block_numbered:
             option = NumberedVAMASBlockOptions(index)
 
+            # MUTLILINE: number_of_lines_in_comment
             if option == NumberedVAMASBlockOptions.comment:
-                total_lines = self.block_numerical_labels[NumberedVAMASBlockOptions.number_of_lines_in_comment]
+                total_lines = block_numerical_labels[NumberedVAMASBlockOptions.number_of_lines_in_comment]
                 index, self.block_comment_lines, multiline, create = self.multiline_decision(self.block_comment_lines, total_lines, index)
                 if create:
                     block[option] = []
                 option = NumberedVAMASBlockOptions(index)
 
+            # OPTIONAL: ExperimentMode = MAP/MAPDP
             if option == NumberedVAMASBlockOptions.x_coord:
                 if (self.exp_type_labels[VAMASExperimentOptions.experiment_mode]
-                    == (ExperimentMode.MAP or ExperimentMode.MAPDP)):
+                    in (ExperimentMode.MAP, ExperimentMode.MAPDP)):
                     pass
                 else:
                     index = index + 2
                     option = NumberedVAMASBlockOptions(index)
 
+            # MULTILINE: number_of_exp_variables
             if option == NumberedVAMASBlockOptions.value_of_experimental_variable:
                 total_lines = self.exp_numerical_labels[VAMASExperimentOptions.number_of_exp_variables]
                 index, self.exp_vars, multiline, create = self.multiline_decision(self.exp_vars, total_lines, index)
@@ -254,39 +286,44 @@ class VAMASparser():
                     block[option] = []
                 option = NumberedVAMASBlockOptions(index)
 
+            # OPTIONAL: ExperimentMode = MAP/MAPSVDP/SDP/SDPSV
             if option == NumberedVAMASBlockOptions.sputtering_ion:
                 if (self.exp_type_labels[VAMASExperimentOptions.experiment_mode]
-                    == (ExperimentMode.MAP or ExperimentMode.MAPSVDP or ExperimentMode.SDP or ExperimentMode.SDPSV)):
+                    in (ExperimentMode.MAP, ExperimentMode.MAPSVDP, ExperimentMode.SDP, ExperimentMode.SDPSV)):
                     pass 
                 else:
                     index = index + 3
                     option = NumberedVAMASBlockOptions(index)     
 
+            # OPTIONAL: ExperimentMode = MAP/MAPDP/MAPSV/SEM
             if option == NumberedVAMASBlockOptions.field_of_view_x:
                 if (self.exp_type_labels[VAMASExperimentOptions.experiment_mode]
-                    == (ExperimentMode.MAP or ExperimentMode.MAPDP or 
-                    ExperimentMode.MAPSV or ExperimentMode.SEM)):
+                    in (ExperimentMode.MAP, ExperimentMode.MAPDP, 
+                    ExperimentMode.MAPSV, ExperimentMode.SEM)):
                     pass 
                 else:
                     index = index + 2
                     option = NumberedVAMASBlockOptions(index)    
 
+            # OPTIONAL: ExperimentMode = MAPSV/MAPSVDP/SEM
             if option == NumberedVAMASBlockOptions.first_linescan_xi:
                 if (self.exp_type_labels[VAMASExperimentOptions.experiment_mode]
-                    == (ExperimentMode.MAPSV or ExperimentMode.MAPSVDP or ExperimentMode.SEM)):   
+                    in (ExperimentMode.MAPSV, ExperimentMode.MAPSVDP, ExperimentMode.SEM)):   
                     pass
                 else:
                     index = index + 6
                     option = NumberedVAMASBlockOptions(index)
             
+            # OPTIONAL: Technique = AES_diff
             if option == NumberedVAMASBlockOptions.differential_width:
-                if (self.block_type_labels[NumberedVAMASBlockOptions.technique]
+                if (block_type_labels[NumberedVAMASBlockOptions.technique]
                     == Technique.AES_diff):
                     pass 
                 else:
                     index = index + 1
                     option = NumberedVAMASBlockOptions(index)
 
+            # OPTIONAL: ScanMode = REGULAR
             if option == NumberedVAMASBlockOptions.abscissa_label:
                 if (self.exp_type_labels[VAMASExperimentOptions.scan_mode]
                     == ScanMode.REGULAR):
@@ -295,8 +332,9 @@ class VAMASparser():
                     index = index + 4
                     option = NumberedVAMASBlockOptions(index)
 
+            # MULTILINE: number_of_corresponding_variables
             if option == NumberedVAMASBlockOptions.corresponding_variable_label and not self.second_numbered_pair:
-                total_lines = self.block_numerical_labels[NumberedVAMASBlockOptions.number_of_corresponding_variables]
+                total_lines = block_numerical_labels[NumberedVAMASBlockOptions.number_of_corresponding_variables]
                 index, self.corresponding_vars, multiline, create = self.multiline_decision(self.corresponding_vars, total_lines, index, 2)
                 if create:
                     block[option] = []
@@ -309,20 +347,22 @@ class VAMASparser():
                 self.second_numbered_pair = False
                 return index, current_block
 
+            # OPTIONAL: Technique = AES_diff/AES_dir/EDX/ELS AND ExperimentMode = MAPDP/MAPSVDP/SDP/SDPSV
             if option == NumberedVAMASBlockOptions.sputtering_source_energy:
-                if (self.block_type_labels[NumberedVAMASBlockOptions.technique]
-                    == (Technique.AES_diff or Technique.AES_dir or Technique.EDX or Technique.ELS 
-                    or Technique.UPS or Technique.XPS or Technique.XRF)
+                if (block_type_labels[NumberedVAMASBlockOptions.technique]
+                    in (Technique.AES_diff, Technique.AES_dir, Technique.EDX, Technique.ELS,
+                     Technique.UPS, Technique.XPS, Technique.XRF)
                     and self.exp_type_labels[VAMASExperimentOptions.experiment_mode]
-                    == (ExperimentMode.MAPDP or ExperimentMode.MAPSVDP or ExperimentMode.SDP 
-                    or ExperimentMode.SDPSV)):
+                    in (ExperimentMode.MAPDP, ExperimentMode.MAPSVDP, ExperimentMode.SDP, 
+                     ExperimentMode.SDPSV)):
                     pass 
                 else:
                     index = index + 7
                     option = NumberedVAMASBlockOptions(index)
 
+            # MUTLILINE: number_of_additional_params
             if option == NumberedVAMASBlockOptions.additional_param_label and not (self.second_numbered_pair or self.third_numbered_pair):
-                total_lines = self.block_numerical_labels[NumberedVAMASBlockOptions.number_of_additional_params]
+                total_lines = block_numerical_labels[NumberedVAMASBlockOptions.number_of_additional_params]
                 index, self.additional_params, multiline, create = self.multiline_decision(self.additional_params, total_lines, index, 3)
                 if create:
                     block[option] = []
@@ -348,6 +388,7 @@ class VAMASparser():
         if self.current_block_numbered:
             option = VAMASBlockFooter(index)
 
+            # MULTILINE: number_of_future_upgrade_block_entries
             if option == VAMASBlockFooter.future_upgrade_block_entry:
                 total_lines = self.exp_numerical_labels[VAMASExperimentOptions.number_of_future_upgrade_block_entries]
                 index, self.upgrade_blocks, multiline, create = self.multiline_decision(self.upgrade_blocks, total_lines, index)
@@ -355,8 +396,9 @@ class VAMASparser():
                     block[option] = []
                 option = VAMASBlockFooter(index)
 
+            # MUTLILINE: number_of_corresponding_variables
             if option == VAMASBlockFooter.minimum_ordinate_value and not self.second_numbered_pair:
-                total_lines = self.block_numerical_labels[NumberedVAMASBlockOptions.number_of_corresponding_variables]
+                total_lines = block_numerical_labels[NumberedVAMASBlockOptions.number_of_corresponding_variables]
                 index, self.ordinate_val_labels, multiline, create = self.multiline_decision(self.ordinate_val_labels, total_lines, index, 2)
                 if create:
                     block[option] = []
@@ -371,8 +413,8 @@ class VAMASparser():
 
             # !!! THIS IS THE DATA !!!
             if option == VAMASBlockFooter.ordinate_value:
-                total_lines = self.block_numerical_labels[VAMASBlockFooter.number_of_ordinate_values]
-                lines_per_item = self.block_numerical_labels[NumberedVAMASBlockOptions.number_of_corresponding_variables]
+                total_lines = block_numerical_labels[VAMASBlockFooter.number_of_ordinate_values]
+                lines_per_item = block_numerical_labels[NumberedVAMASBlockOptions.number_of_corresponding_variables]
 
                 index, self.ordinate_vals, multiline, create = self.multiline_decision(self.ordinate_vals, total_lines, index, lines_per_item)
                 # create a list for the values in each variable
@@ -387,10 +429,10 @@ class VAMASparser():
 
 
         # populate control dictionaries
-        if option in self.block_numerical_labels:
-            self.block_numerical_labels[option] = int(line.strip())
+        if option in block_numerical_labels:
+            block_numerical_labels[option] = int(line.strip())
         elif option == NumberedVAMASBlockOptions.technique:
-            self.block_type_labels[NumberedVAMASBlockOptions.technique] == Technique[line.strip().upper()]
+            block_type_labels[NumberedVAMASBlockOptions.technique] == Technique[line.strip().upper()]
 
         if multiline and option == VAMASBlockFooter.ordinate_value:
             block[option][self.var_index].append(float(line.strip()))
@@ -427,7 +469,6 @@ class VAMASparser():
         with open(self.filename) as file:
             # flags to help keep track of structure
             experiment_data_complete = False
-            current_block_complete = False
             self.current_block_header = False 
             self.current_block_numbered = False 
             self.current_block_footer = False
