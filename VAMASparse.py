@@ -429,7 +429,6 @@ class VAMASparser():
                 if self.var_index >= lines_per_item:
                     self.var_index = 0
 
-
         # populate control dictionaries
         if option in block_numerical_labels:
             block_numerical_labels[option] = int(line.strip())
@@ -450,6 +449,11 @@ class VAMASparser():
         if self.current_block_footer:
             index = 1
             current_block = current_block + 1 
+
+            if current_block < len(self.blocks):
+                block = self.blocks[current_block]
+                block[option] = line.strip()
+                index = index + 1
 
             self.current_block_header = False 
             self.current_block_numbered = False 
