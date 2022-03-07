@@ -1,0 +1,13 @@
+{
+    "filepath": "/home/emmabat/Documents/XPS/211124/",
+    "filenames":[
+        "102.1.control.vms", "103.2.dii.vms", "108.7.bi.vms", "104.3.fi.vms", "105.4.fii.vms", "106.5.cii.vms", "107.6.ci.vms"
+    ],
+    "labels":[
+        "0 s", "60 s", "120 s", "150 s [a]", "150 s [b]", "180 s [a]", "180 s [b]"
+    ],
+    "colors":[
+        "#acb5a4", "#b9b381", "#a3893d", "#a88c44", "#9f8052", "#9b7848", "#946e4a"
+    ],
+    "plot type": "spectra"
+}

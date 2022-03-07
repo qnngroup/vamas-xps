@@ -1,0 +1,13 @@
+{
+    "filepath": "/home/emmabat/Documents/XPS/211124/",
+    "filenames":[
+        "109.1.control.vms", "110.4.fii.vms"
+    ],
+    "labels":[
+        "0 s", "150 s [b]"
+    ],
+    "colors":[
+        "#acb5a4", "#9f8052"
+    ],
+    "plot type": "high_res"
+}

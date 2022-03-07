@@ -26,11 +26,18 @@ with additional reference to https://github.com/aeronth/wraith.git for Python 2
 #  'V'        volts
 '''
 
-from numpy import exp, expm1, format_float_scientific
 from VAMASspecs import *
 
 class VAMASparser():
     def __init__(self, filename):
+        '''
+        filename: full path+name of file to read [string]
+
+        This is a class for parsing VAMAS files.
+
+        The init function simply sets up container variables for the VAMAS data.
+        To parse data into these variables, use VAMASparser.read_VAMAS()
+        '''
         self.filename = filename 
 
         self.exp_numerical_labels = dict.fromkeys((
@@ -68,18 +75,27 @@ class VAMASparser():
         index = current index into Enum
 
         returns: new index, current_lines, keep_multiline (Boolean), create (Boolean) 
+
+        Helper function for parsing variables that can take up multiple lines
         '''
+        # stop reading into this variable and skip to next index if above total_lines
         if current_lines >= total_lines:
             return index + lines_per_item, current_lines, False, False
-        # otherwise add to comment without advancing index
+        # initialize variable on first line
         elif current_lines == 0:
             return index, current_lines + 1, True, True
+        # otherwise keep reading into this variable
         else:
             return index, current_lines + 1, True, False
 
-    def get_x_axis(self, block_index=0):
+    def get_x_vals(self, block_index=0):
+        '''
+        block_index: index of block to read
+
+        returns a list of x values, their label [string] and units [string]
+        '''
         block = self.blocks[block_index]
-        block_numerical_labels = self.blocks[block_index]
+        block_numerical_labels = self.all_blocks_numerical[block_index]
 
         label = block[NumberedVAMASBlockOptions.abscissa_label]
         units = block[NumberedVAMASBlockOptions.abscissa_units]
@@ -87,36 +103,49 @@ class VAMASparser():
         increment = float(block[NumberedVAMASBlockOptions.abscissa_increment])
 
         x = []
-        for i in range(block_numerical_labels[VAMASBlockFooter.number_of_ordinate_values]):
+        num_x = int(block_numerical_labels[VAMASBlockFooter.number_of_ordinate_values]/block_numerical_labels[NumberedVAMASBlockOptions.number_of_corresponding_variables])
+        for i in range(num_x):
             x.append(start + increment*i)
         return x, label, units
 
-    def get_ordinate_vals(self, variable_index, block_index=0):
+    def kinetic_to_binding_energy(self, ke, block_index=0):
+        '''
+        ke: kinetic energy at a given point
+        block_index: index of block to retrieve characteristic energy from
+
+        returns binding energy associated with electron
+        '''
+        characteristic_energy = float(self.get_block_data(NumberedVAMASBlockOptions.analysis_source_characteristic_energy, block_index))
+        return characteristic_energy - ke
+
+    def get_y_vals(self, variable_index, block_index=0):
         '''
         variable_index: index of the corresponding variable for values of interest
         block_index: index of block to read
 
-        returns a list of values associated with the corresponding variable
-        at variable_index
+        returns a list of y values associated with the corresponding variable
+        at variable_index; their label [string] and units [string]
         '''
-        data = self.get_block_data(VAMASBlockFooter.ordinate_value, block_index)
-        return data[variable_index]
-
-    def get_corresponding_var_label(self, variable_index, block_index = 0):
-        '''
-        variable_index: index of the corresponding variable to read label from
-        block_index: index of block to read
-
-        returns a string -- the name of the corresponding variable
-        at variable_index
-        '''
-        data = self.get_block_data(NumberedVAMASBlockOptions.corresponding_variable_label, block_index)
-        return data[variable_index]
+        y = self.get_block_data(VAMASBlockFooter.ordinate_value, block_index)[variable_index]
+        label = self.get_block_data(NumberedVAMASBlockOptions.corresponding_variable_label, block_index)[variable_index]
+        units = self.get_block_data(NumberedVAMASBlockOptions.corresponding_variable_units, block_index)[variable_index]
+        return y, label, units
 
     def get_experiment_data(self, option):
+        '''
+        option = VAMASspecs Experiment Enum option from which to read data
+
+        returns experiment data at option
+        '''
         return self.VAMASExperiment[option]
 
     def get_block_data(self, option, block_index=0):
+        '''
+        option = VAMASspecs block Enum option from which to read data
+        block_index = index of block to read
+
+        returns block data at option
+        '''
         return self.blocks[block_index][option]
 
     def experiment_parser(self, line, index):
@@ -448,6 +477,7 @@ class VAMASparser():
 
         if self.current_block_footer:
             index = 1
+            option = VAMASBlockHeader(index)
             current_block = current_block + 1 
 
             if current_block < len(self.blocks):
@@ -469,6 +499,9 @@ class VAMASparser():
             - Block 1
             ...
             - Block N
+
+        reads VAMAS file into class container variables, obtainable through
+        getter functions
         '''
         self.VAMASExperiment = {}
         self.blocks = []
