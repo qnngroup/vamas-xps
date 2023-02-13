@@ -8,7 +8,32 @@ Based on the VAMAS file specification
 
 https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/epdf/10.1002/sia.740130202
 
-Example usage in vamas_scripts.py. Basically, the VAMASparser class reads the VAMAS file into
-1) a dictionary containing Experiment section data and 2) a list of dictionaries containing Blocks
-data. There are some simple getter functions for retrieving x-axis (abscissa) and y-axis (ordinate)
-values; other data can be retrieved through Enum values seen in VAMASspecs.py
+All VAMAS files can be parsed into the provided VAMASparser class and then accessed via the provided
+get functions, so long as the user knows the names of the desired VAMAS variables. However, this
+is primarily focused on reading XPS data output by the Phi Versaprobe II.
+
+To read and plot VAMAS files for XPS spectra or depth profiles, set up a config file like the examples, 
+change the config_file name in main.py, and run.
+
+In general, parsing other VAMAS files and read out data for other kinds of plots should look something like
+this:
+
+`parser = VAMASparser('filename')`
+
+`x, label, units = parser.get_x_vals(block_index)`
+
+`y, label, units = parser.get_y_vals(variable_index, block_index)`
+
+`plot_title = parser.get_block_data(VAMASBlockHeader.block_identifier, block_index)`
+
+## VAMASspecs.py
+
+Provides Enums for different VAMAS data types
+
+## VAMASparse.py
+
+Defines the VAMASparser class based on the VAMAS file specification
+
+## vamas_helpers.py
+
+Helper functions for dealing with Phi Versaprobe II data
