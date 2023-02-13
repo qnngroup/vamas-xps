@@ -1,0 +1,14 @@
+{
+    "filepath": "/home/emmabat/Documents/XPS/220318/",
+    "filenames":[
+        "103.2.control.vms", "104.3.itosa5f.vms", "102.1.itosa5g.vms"
+    ],
+    "labels":[
+        "no reduction", "low reduction", "high reduction"
+    ],
+    "colors":[
+        "#acb5a4", "#a88c44", "#946e4a"
+    ],
+    "acsummry": "False",
+    "plot type": "spectra"
+}

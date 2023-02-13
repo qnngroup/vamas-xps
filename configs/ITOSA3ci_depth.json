@@ -1,0 +1,16 @@
+{
+    "filepath": "/home/emmabat/Documents/XPS/211206/",
+    "filenames":[
+        "104.1.itosa3ci+1_1.vms"
+    ],
+    "labels":[
+        "ITOSA3 ci [120 s]"
+    ],
+    "colors":[
+        "#763D00", "#A2C4C0"
+    ],
+    "plot type": "depth",
+    "sputter stop": 30,
+    "acsummry": "False",
+    "acname": ""
+}

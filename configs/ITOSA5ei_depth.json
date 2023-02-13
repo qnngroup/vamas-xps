@@ -1,0 +1,16 @@
+{
+    "filepath": "/home/emmabat/Documents/XPS/211216/",
+    "filenames":[
+        "103.1.itosa5ei_depth.vms"
+    ],
+    "acsummry": "True",
+    "acname": "acsummry.txt",
+    "labels":[
+        "ITOSA5 ei [120 s]"
+    ],
+    "colors":[
+        "#4a352f", "#d4ad9d"
+    ],
+    "plot type": "depth",
+    "sputter stop": 30
+}

@@ -1,0 +1,16 @@
+{
+    "filepath": "/home/emmabat/Documents/XPS/220318/",
+    "filenames":[
+        "105.2.control_1.vms"
+    ],
+    "acsummry": "True",
+    "acname": "acsummry_control_pro.txt",
+    "labels":[
+        "Control"
+    ],
+    "colors":[
+        "#4e5f69", "#a2c8de"
+    ],
+    "plot type": "depth",
+    "sputter stop": 25
+}
